@@ -8,7 +8,7 @@ To install `serve` package run:
 
 In the project directory, you can run:
 
-### `npm run buld`
+### `npm run build`
 
 Builds the app to the `dist` folder.\
 
