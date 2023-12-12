@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Wallet</title>
+  <style type="text/css">
+    *, body { 
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    div {
+      margin: 1rem;
+    }
+    select {
+      border: 1px solid #d2d3d6;
+      line-height: 1.5;
+      outline: none;
+      padding: 8px 16px;
+    }
+    textarea {
+      display: block;
+      width: 100%;
+      border: 1px solid #d2d3d6;
+      line-height: 1.5;
+      outline: none;
+      padding: 8px 16px;
+      margin-bottom: 16px;
+    }
+    button {
+      background: #009cf0;
+      border-color: #009cf0;
+      color: white;
+      line-height: 24px;
+      padding: 8px 24px;
+      align-items: center;
+      border-radius: 4px;
+      border-style: solid;
+      border-width: 1px;
+      cursor: pointer;
+      display: inline-flex;
+      justify-content: center;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <label for="wallets">Account: </label>
+    <select id="wallets">
+    </select>
+  </div>
+  <div>
+    <textarea id="message" placeholder="Payload" ></textarea>
+    <button id="sign" >Sign</button>
+  </div>
+  <div>
+    <textarea id="signature" placeholder="Signature" readonly ></textarea>
+  </div>
+</body>
+</html>
