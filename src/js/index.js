@@ -1,4 +1,7 @@
-import {Polkadot} from '@unique-nft/utils/extension';
+import { Polkadot, Ethereum, AddEthereumChainParameter } from '@unique-nft/utils/extension';
+import * as ethers from 'ethers';
+
+const DEFAULT_CHAIN = Ethereum.UNIQUE_CHAINS_DATA_FOR_EXTENSIONS.opal;
 
 let allAccounts = [];
 
@@ -22,6 +25,7 @@ async function sign() {
   const currentAddress = $walletsSelect.value;
 
   const account = allAccounts.find(({ address }) => currentAddress === address);
+
   const { signature } = await account.signer.sign($messageInput.value);
   $signatureTextarea.value = signature;
 }
@@ -31,16 +35,68 @@ async function init() {
   const $signBtn = document.getElementById('sign');
   $signBtn.addEventListener('click', sign);
 
-  global.connectWallet = connectWallet;
+  global.connectPolkadotWallet = connectPolkadotWallet;
+  global.connectMetamaskWallet = connectMetamaskWallet;
+}
+
+/**
+ * Change chain
+ * @param {AddEthereumChainParameter} EthereumChainParams 
+ * @returns 
+ */
+async function changeMetamaskChain(EthereumChainParams) {
+  if (!(await window.ethereum?.isConnected())) return;
+
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: EthereumChainParams.chainId }]
+    });
+  } catch {
+    await window.ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [EthereumChainParams]
+    });
+  }
+};
+
+/**
+ * @param {string} extensionName name of the extension
+ */
+async function connectPolkadotWallet(extensionName) {
+  const { accounts } = await Polkadot.loadWalletByName(extensionName);
+  allAccounts.push(...accounts);
+  updateWalletsList();
+}
+
+/**
+ * Sign with metamask
+ * @param {string} message 
+ * @returns Promise<{ signature: string }>
+ */
+async function signWithMetamask(message) {
+  const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+  const signature = await metamaskProvider.getSigner().signMessage(message);
+  return { signature };
 }
 
 /**
  * 
- * @param {string} extensionName name of the extension
  */
-async function connectWallet(extensionName) {
-  const { accounts } = await Polkadot.loadWalletByName(extensionName);
-  allAccounts.push(...accounts);
+async function connectMetamaskWallet() {
+  const {address, chainId} = await Ethereum.requestAccounts();
+  console.log(address, chainId);
+  if (chainId !== DEFAULT_CHAIN.chainId) {
+    await changeMetamaskChain(DEFAULT_CHAIN);
+  }
+  allAccounts.push({
+    name: 'Metamask account',
+    isMetamask: true,
+    address,
+    signer: {
+      sign: signWithMetamask
+    }
+  });
   updateWalletsList();
 }
 
