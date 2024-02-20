@@ -1,7 +1,7 @@
 import { Polkadot, Ethereum, AddEthereumChainParameter } from '@unique-nft/utils/extension';
 import * as ethers from 'ethers';
 
-const DEFAULT_CHAIN = Ethereum.UNIQUE_CHAINS_DATA_FOR_EXTENSIONS.opal;
+const DEFAULT_CHAIN = Ethereum.UNIQUE_CHAINS_DATA_FOR_EXTENSIONS.opal; // testnet OPAL
 
 let allAccounts = [];
 
@@ -40,7 +40,7 @@ async function init() {
 }
 
 /**
- * Change chain
+ * Change chain in Metamask wallet
  * @param {AddEthereumChainParameter} EthereumChainParams 
  * @returns 
  */
@@ -61,6 +61,7 @@ async function changeMetamaskChain(EthereumChainParams) {
 };
 
 /**
+ * Connect with any Polkadot wallet
  * @param {string} extensionName name of the extension
  */
 async function connectPolkadotWallet(extensionName) {
@@ -70,7 +71,7 @@ async function connectPolkadotWallet(extensionName) {
 }
 
 /**
- * Sign with metamask
+ * Sign with Metamask
  * @param {string} message 
  * @returns Promise<{ signature: string }>
  */
@@ -81,11 +82,10 @@ async function signWithMetamask(message) {
 }
 
 /**
- * 
+ * Connect with Metamask
  */
 async function connectMetamaskWallet() {
   const {address, chainId} = await Ethereum.requestAccounts();
-  console.log(address, chainId);
   if (chainId !== DEFAULT_CHAIN.chainId) {
     await changeMetamaskChain(DEFAULT_CHAIN);
   }
