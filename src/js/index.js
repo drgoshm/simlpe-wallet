@@ -1,7 +1,12 @@
 import { Polkadot, Ethereum, AddEthereumChainParameter } from '@unique-nft/utils/extension';
 import * as ethers from 'ethers';
+import { Sdk } from '@unique-nft/sdk/full';
 
 const DEFAULT_CHAIN = Ethereum.UNIQUE_CHAINS_DATA_FOR_EXTENSIONS.opal; // testnet OPAL
+const OPAL_SDK_REST_URI = 'https://rest.unique.network/opal/v1';
+const COLLECTION_ID = 2216;
+
+const sdk = new Sdk({ baseUrl: OPAL_SDK_REST_URI });
 
 let allAccounts = [];
 
@@ -37,6 +42,9 @@ async function init() {
 
   global.connectPolkadotWallet = connectPolkadotWallet;
   global.connectMetamaskWallet = connectMetamaskWallet;
+
+  global.getTokensByAccountViaRest = getTokensByAccountViaRest;
+  global.getTokensByAccountViaSDK = getTokensByAccountViaSDK;
 }
 
 /**
@@ -98,6 +106,47 @@ async function connectMetamaskWallet() {
     }
   });
   updateWalletsList();
+}
+
+/**
+ * get the list of tokens for the selected account via REST API
+ */
+async function getTokensByAccountViaRest() {
+  const $walletsSelect = document.getElementById('wallets');
+  const currentAddress = $walletsSelect.value; // get the current address
+
+  const response = await fetch(`${OPAL_SDK_REST_URI}/tokens/account-tokens?address=${currentAddress}&collectionId=${COLLECTION_ID}`);
+
+  const parsedResponse = await response.json(); // parse the response
+  const { tokens } = parsedResponse;
+
+  const $tokenList = document.getElementById('token-list');
+  $tokenList.innerHTML = '';  
+  tokens.forEach(function(token) {
+    const item = document.createElement('li');
+    item.innerHTML = `${token.collectionId}/${token.tokenId}`;
+    $tokenList.appendChild(item);
+  });
+}
+
+/**
+ * get the list of tokens for the selected account via SDK
+ */
+async function getTokensByAccountViaSDK() {
+  const $walletsSelect = document.getElementById('wallets');
+  const currentAddress = $walletsSelect.value; // get the current address
+
+  const response = await sdk.token.accountTokens({ address: currentAddress, collectionId: COLLECTION_ID });
+
+  const $tokenList = document.getElementById('token-list');
+  $tokenList.innerHTML = '';  
+
+  response.tokens.forEach(function(token) {
+    const item = document.createElement('li');
+    item.innerHTML = `${token.collectionId}/${token.tokenId}`;
+    $tokenList.appendChild(item);
+  });
+  
 }
 
 init();

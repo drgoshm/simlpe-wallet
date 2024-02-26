@@ -45,6 +45,9 @@
       text-decoration: none;
       white-space: nowrap;
     }
+    ul#token-list {
+      margin-left: 16px;
+    }
   </style>
 </head>
 <body>
@@ -65,6 +68,14 @@
   </div>
   <div>
     <textarea id="signature" placeholder="Signature" readonly ></textarea>
+  </div>
+  <div>
+    <button onclick="getTokensByAccountViaRest()" >Get tokens via REST API</button>
+    <button onclick="getTokensByAccountViaSDK()" >Get tokens via SDK</button>
+  </div>
+  <div>
+    <ul id="token-list">
+    </ul>
   </div>
 </body>
 </html>
