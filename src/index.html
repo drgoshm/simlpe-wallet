@@ -85,14 +85,24 @@
     </ul>
   </div>
   <div>
-    <h3>Token data and transfer</h3>
-    <label for="collection-id">Colelction ID</label>
+    <h3>Token data</h3>
+    <label for="collection-id">Collection ID</label>
     <input id="collection-id" type="text" value="2216" placeholder="collection ID" />
     <label for="token-id">Token ID</label>
     <input id="token-id" type="text" value="1" placeholder="token ID" />
     <button onclick="getTokenData()" >Get token data</button>
   </div>
   <div id="token-data">
+  </div>
+  <div id="transfer-result">
+    <h3>Transfer token</h3>
+    <label for="collection-id-for-transfer">Collection ID</label>
+    <input id="collection-id-for-transfer" type="text" value="2216" placeholder="collection ID" />
+    <label for="token-id-for-transfer">Token ID</label>
+    <input id="token-id-for-transfer" type="text" value="1" placeholder="token ID" />
+    <label for="recipient">Recipient</label>
+    <input id="recipient" type="text" value="" placeholder="recipient address" />
+    <button onclick="transfer()" >Transfer</button>
   </div>
 </body>
 </html>

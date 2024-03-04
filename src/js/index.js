@@ -47,6 +47,7 @@ async function init() {
   global.getTokensByAccountViaSDK = getTokensByAccountViaSDK;
 
   global.getTokenData = getTokenData;
+  global.transfer = transfer;
 }
 
 /**
@@ -189,7 +190,66 @@ async function getTokenData() {
   $tokenData.appendChild($attributesList);
 }
 
+async function transfer() {
+  const $collectionIdInput = document.getElementById('collection-id-for-transfer');
+  const $tokenIdInput = document.getElementById('token-id-for-transfer');
+  const $recipientInput = document.getElementById('recipient');
+  const $walletsSelect = document.getElementById('wallets');
 
+  const collectionId = $collectionIdInput.value;
+  const tokenId = $tokenIdInput.value;
+  const currentAddress = $walletsSelect.value;
+  const to = $recipientInput.value;
+
+  const account = allAccounts.find(({ address }) => currentAddress === address);
+
+  // get the signer payload from the REST SDK
+  const buildResponse = await fetch(`${OPAL_SDK_REST_URI}/tokens/transfer?use=Build`, {
+    method: 'PATCH',
+    mode: "cors",
+    cache: "no-cache",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      collectionId,
+      tokenId,
+      address: account.address,
+      from: account.address,
+      to
+    })
+  });
+
+  const transactionData = await buildResponse.json();
+
+  console.log(transactionData); 
+  // transaction data contains:
+  // signerPayloadHex - hex string
+  // signerPayloadJSON - parsed data of TX to JSON
+  // signerPayloadRaw - raw data
+
+  // now we need to sign the transaction
+  
+  const { signature } = await account.signer.sign(transactionData);
+
+  // send TX
+  const sendResponse = await fetch(`${OPAL_SDK_REST_URI}/tokens/transfer?use=Submit`, {
+    method: 'PATCH',
+    mode: "cors",
+    cache: "no-cache",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...transactionData,
+      signature
+    })
+  });
+
+  console.log(await sendResponse.json());
+
+
+}
 
 init();
 
