@@ -45,6 +45,8 @@ async function init() {
 
   global.getTokensByAccountViaRest = getTokensByAccountViaRest;
   global.getTokensByAccountViaSDK = getTokensByAccountViaSDK;
+
+  global.getTokenData = getTokenData;
 }
 
 /**
@@ -148,6 +150,46 @@ async function getTokensByAccountViaSDK() {
   });
   
 }
+
+/**
+ * fetch the token data
+ */
+async function getTokenData() {
+  const $collectionIdInput = document.getElementById('collection-id');
+  const $tokenIdInput = document.getElementById('token-id');
+  const $tokenData = document.getElementById('token-data');
+
+  const collectionId = $collectionIdInput.value;
+  const tokenId = $tokenIdInput.value;
+
+  const response = await fetch(`${OPAL_SDK_REST_URI}/tokens?collectionId=${collectionId}&tokenId=${tokenId}`);
+
+  const data = await response.json();
+
+  $tokenData.innerHTML = '';  
+
+  const $image = document.createElement('img');
+  $image.src = data.image.url;
+  const $description = document.createElement('div');
+  $description.innerHTML = [`Prefix: ${data.collection.tokenPrefix}`,
+    `Name: ${data.collection.name}`,
+    `Description: ${data.collection.description}`,
+    `Owner: ${data.owner}`].join('<br/>');
+
+  const $attributesList = document.createElement('ul');
+
+  Object.values(data.attributes).map(attribute => {
+    const $attribute = document.createElement('li');
+    $attribute.innerHTML = `${attribute.name._} = ${attribute.value._}`;
+    $attributesList.appendChild($attribute);
+  });
+  
+  $tokenData.appendChild($image);
+  $tokenData.appendChild($description);
+  $tokenData.appendChild($attributesList);
+}
+
+
 
 init();
 
