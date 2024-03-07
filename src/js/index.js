@@ -1,6 +1,9 @@
 import { Polkadot, Ethereum, AddEthereumChainParameter } from '@unique-nft/utils/extension';
 import * as ethers from 'ethers';
 import { Sdk } from '@unique-nft/sdk/full';
+import { UniqueNFTFactory } from '@unique-nft/solidity-interfaces';
+import { Utf16, HexString } from 'utf-helpers';
+
 
 const DEFAULT_CHAIN = Ethereum.UNIQUE_CHAINS_DATA_FOR_EXTENSIONS.opal; // testnet OPAL
 const OPAL_SDK_REST_URI = 'https://rest.unique.network/opal/v1';
@@ -48,6 +51,7 @@ async function init() {
 
   global.getTokenData = getTokenData;
   global.transfer = transfer;
+  global.changeAttribute = changeAttribute;
 }
 
 /**
@@ -247,8 +251,110 @@ async function transfer() {
   });
 
   console.log(await sendResponse.json());
+}
 
 
+async function setPropertiesViaMetamask(account, collectionId, tokenId, properties) {
+  const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+  const nftHelper = await UniqueNFTFactory(collectionId, metamaskProvider.getSigner());
+
+  const tx = await nftHelper.setProperties(tokenId, properties.map(({ key, value }) => ({
+    key: HexString.fromArray(Utf16.stringToNumberArray(key)),
+    value: HexString.fromArray(Utf16.stringToNumberArray(value))
+  })));
+  await tx.wait();
+}
+
+async function setPropertiesViaRest(account, collectionId, tokenId, properties) {
+  const buildResponse = await fetch(`${OPAL_SDK_REST_URI}/tokens/properties?use=Build`, {
+    method: 'POST',
+    mode: "cors",
+    cache: "no-cache",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      collectionId,
+      tokenId,
+      address: account.address,
+      properties
+    })
+  });
+  const transactionData = await buildResponse.json();
+
+  const { signature } = await account.signer.sign(transactionData);
+
+  const sendResponse = await fetch(`${OPAL_SDK_REST_URI}/tokens/properties?use=Submit`, {
+    method: 'POST',
+    mode: "cors",
+    cache: "no-cache",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...transactionData,
+      signature
+    })
+  });
+
+  console.log(sendResponse);
+}
+
+const getEncodedAttributes = (attributes, attributeName, attributeValue) => {
+  const attributesArr = Object.values(attributes);
+  // if token hasn't any attributes, add new one
+  if (attributesArr.length === 0)  {
+    return [{ 
+      key: 'a.0',
+      value: `{"_": "${attributeValue}"}`
+    }];
+  }
+
+  // find index of attribute if it exists
+  return attributesArr.reduce((acc, { name }, index) => {
+    if (name._ === attributeName) {
+      acc.push({ 
+        key: `a.${index}`,
+        value: `{"_": "${attributeValue}"}`
+      });
+    }
+    return acc;
+  }, []);
+};
+
+async function changeAttribute() {
+  const $collectionIdInput = document.getElementById('collection-id-for-set-attr');
+  const $tokenIdInput = document.getElementById('token-id-for-set-attr');
+  const $attributeNameInput = document.getElementById('attribute-name');
+  const $attributeValueInput = document.getElementById('attribute-value');
+  const $walletsSelect = document.getElementById('wallets');
+
+  const currentAddress = $walletsSelect.value; // get the current address
+
+  const account = allAccounts.find(({ address }) => currentAddress === address);
+
+  if (!account)  return;
+
+  const collectionId = Number($collectionIdInput.value);
+  const tokenId = Number($tokenIdInput.value);
+  const attributeName = $attributeNameInput.value;
+  const attributeValue = $attributeValueInput.value;
+
+  // fetch properties
+  const tokenResponse = await fetch(`${OPAL_SDK_REST_URI}/tokens?collectionId=${collectionId}&tokenId=${tokenId}`);
+  const tokenData = await tokenResponse.json();
+  
+  const { attributes } = tokenData;
+
+  const encodedAttributes = getEncodedAttributes(attributes, attributeName, attributeValue);
+
+  console.log(encodedAttributes);
+
+  if (account.isMetamask) {
+    setPropertiesViaMetamask(account, collectionId, tokenId, encodedAttributes);
+  } else {
+    setPropertiesViaRest(account, collectionId, tokenId, encodedAttributes);
+  }
 }
 
 init();

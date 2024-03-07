@@ -33,8 +33,11 @@
     ]
   },
   "dependencies": {
+    "@unique-nft/schemas": "0.1.3",
     "@unique-nft/sdk": "^0.6.2",
+    "@unique-nft/solidity-interfaces": "^0.70.0",
     "@unique-nft/utils": "^0.3.14",
-    "ethers": "^5.7.2"
+    "ethers": "^5.7.2",
+    "utf-helpers": "^0.0.3"
   }
 }
